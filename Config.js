@@ -163,7 +163,7 @@ const SITE_CONFIG = {
     videoProjects: [
       { titulo: "FCNSMP", status: "em producao" },
       { titulo: "EquinoxSMP", status: "em producao" },
-      { titulo: "Aurora Mortis", status: "em espera" },
+      { titulo: "Aurora Mortis", status: "em producao" },
       { titulo: "Espiralium Era 2", status: "finalizado" },
     ],
     statusLabels: {
