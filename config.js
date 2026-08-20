@@ -32,8 +32,8 @@ const SITE_CONFIG = {
      Exibido em destaque no topo do site (Hero).
   --------------------------------------------------------------------- */
   comissoes: {
-    abertas: true,
-    slotsDisponiveis: 2,
+    abertas: false,
+    slotsDisponiveis: 5,
     mensagemAbertas: "COMISSÕES ABERTAS",
     mensagemFechadas: "COMISSÕES FECHADAS NO MOMENTO",
   },
@@ -92,9 +92,15 @@ const SITE_CONFIG = {
     {
       numero: "03",
       titulo: "Render 3D (Blender)",
+      // Serviço pausado no momento — o aviso abaixo aparece como uma faixa sobre o card.
+      // Para reativar, apague (ou defina como false) o campo "indisponivel".
+      indisponivel: true,
+      avisoIndisponivel: "EM PAUSA",
       descricao:
-        "Renderização 3D no Blender, de um headshot simples para foto de perfil até um wallpaper completo com cena e iluminação elaboradas. Animações e loops ainda não são oferecidos devido a limitações de hardware.",
+        "Renderização 3D no Blender focada em modelos de Minecraft (skins, personagens, builds). Não sou modelador — o cliente precisa fornecer o modelo pronto, em Blockbench (.bbmodel) ou glTF (.gltf/.glb). De um headshot simples para foto de perfil até um wallpaper completo. Animações e loops ainda não são oferecidos devido a limitações de hardware.",
       recursos: [
+        "Render de modelos de Minecraft (skins, personagens, builds)",
+        "Cliente fornece o modelo: Blockbench (.bbmodel) ou glTF (.gltf/.glb)",
         "Render de personagem/headshot para foto de perfil",
         "Render de cena completa para wallpaper",
         "Iluminação e composição personalizadas",
@@ -237,29 +243,10 @@ const SITE_CONFIG = {
       video: "Vídeo",
       render: "Render 3D",
     },
-    // EXEMPLOS — substitua pelos dados reais dos seus clientes e remova estes 3 itens de exemplo.
-    clientes: [
-      {
-        cliente: "Cliente Exemplo (Música)",
-        tipo: "musica",
-        titulo: "Single — descrição do trabalho realizado",
-        link: "https://open.spotify.com/",
-        icon: "spotify-white-icon.webp",
-      },
-      {
-        cliente: "Cliente Exemplo (Vídeo)",
-        tipo: "video",
-        titulo: "Edição de vídeo — descrição do trabalho realizado",
-        link: "https://www.youtube.com/",
-        icon: "youtube-app-white-icon.webp",
-      },
-      {
-        cliente: "Cliente Exemplo (Render)",
-        tipo: "render",
-        titulo: "Render 3D — descrição do trabalho realizado",
-        imagem: "https://placehold.co/800x600/1a1a1a/FFFFFF?text=Render+Preview",
-      },
-    ],
+    // Nenhum cliente cadastrado manualmente ainda — os cards de trabalhos
+    // finalizados na Fila aparecem aqui automaticamente. Adicione objetos
+    // aqui para trabalhos que não passaram pela Fila.
+    clientes: [],
   },
 
   /* ---------------------------------------------------------------------

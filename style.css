@@ -376,10 +376,31 @@ main{ position: relative; z-index: 2; }
   gap: 1.5rem;
 }
 .service-card{
+  position: relative;
   padding: clamp(1.8rem, 3vw, 2.8rem);
   transition: transform .5s var(--ease), background .5s ease;
+  overflow: hidden;
 }
 .service-card:hover{ transform: translateY(-6px); background: var(--panel-2); }
+
+.service-card-unavailable{ opacity: .55; }
+.service-card-unavailable:hover{ transform: none; background: none; }
+.service-ribbon{
+  position: absolute;
+  top: 18px;
+  right: -38px;
+  width: 150px;
+  padding: .4rem 0;
+  text-align: center;
+  background: #FF6B6B;
+  color: #1a0000;
+  font-size: .68rem;
+  font-weight: 600;
+  letter-spacing: .1em;
+  transform: rotate(40deg);
+  z-index: 5;
+  box-shadow: 0 2px 10px rgba(0,0,0,.4);
+}
 
 .service-number{
   font-family: var(--font-mono);

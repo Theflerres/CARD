@@ -79,7 +79,8 @@
     const grid = document.getElementById("services-grid");
     if (!grid) return;
     grid.innerHTML = SITE_CONFIG.servicos.map((s) => `
-      <article class="bracket-card service-card" data-reveal>
+      <article class="bracket-card service-card${s.indisponivel ? " service-card-unavailable" : ""}" data-reveal>
+        ${s.indisponivel ? `<div class="service-ribbon mono">${s.avisoIndisponivel || "INDISPONÍVEL"}</div>` : ""}
         <span class="service-number mono">${s.numero}</span>
         <h3>${s.titulo}</h3>
         <p class="service-desc">${s.descricao}</p>
