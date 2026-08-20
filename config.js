@@ -28,6 +28,17 @@ const SITE_CONFIG = {
   },
 
   /* ---------------------------------------------------------------------
+     0B. STATUS DE COMISSÕES
+     Exibido em destaque no topo do site (Hero).
+  --------------------------------------------------------------------- */
+  comissoes: {
+    abertas: true,
+    slotsDisponiveis: 2,
+    mensagemAbertas: "COMISSÕES ABERTAS",
+    mensagemFechadas: "COMISSÕES FECHADAS NO MOMENTO",
+  },
+
+  /* ---------------------------------------------------------------------
      1. HERO
   --------------------------------------------------------------------- */
   hero: {
@@ -163,13 +174,13 @@ const SITE_CONFIG = {
         numero: "03",
         titulo: "Proibição de Uso com Inteligência Artificial",
         texto:
-          "É expressamente proibido usar qualquer obra entregue — áudio, vídeo ou render 3D, no todo ou em parte — para treinar, alimentar ou gerar conteúdo por meio de sistemas de Inteligência Artificial generativa (incluindo, mas não se limitando a, fine-tuning, criação de datasets, style transfer, upscaling por IA e ferramentas similares). O descumprimento desta cláusula constitui quebra de contrato e revoga imediatamente a licença de uso concedida.",
+          "É expressamente proibido usar qualquer obra entregue seja áudio, vídeo ou render 3D, no todo ou em parte para treinar, alimentar ou gerar conteúdo por meio de sistemas de Inteligência Artificial generativa (incluindo, mas não se limitando a, fine-tuning, criação de datasets, style transfer, upscaling por IA e ferramentas similares). O descumprimento desta cláusula constitui quebra de contrato e revoga imediatamente a licença de uso concedida.",
       },
       {
         numero: "04",
         titulo: "Render 3D — Limitações Atuais",
         texto:
-          "Atualmente não são oferecidas animações ou loops em render 3D (Blender), devido a limitações de hardware. O serviço é restrito a imagens estáticas — de um headshot simples para foto de perfil a um wallpaper completo.",
+          "Atualmente não são oferecidas animações ou loops em render 3D (Blender), devido a limitações de hardware. O serviço é restrito a imagens estáticas de um headshot simples para foto de perfil a um wallpaper completo.",
       },
       {
         numero: "05",
@@ -277,6 +288,11 @@ const SITE_CONFIG = {
   /* ---------------------------------------------------------------------
      6. LISTA DE ESPERA / FILA
      Projetos em andamento e aguardando slot.
+     Quando o "status" de um item vira "finalizado", ele some automaticamente
+     desta lista e passa a aparecer em Histórico de Clientes (historico.html)
+     — não precisa duplicar o item lá. "link" e "icon" são opcionais e, se
+     informados, são usados no card gerado em Histórico (senão usa o ícone
+     padrão da categoria e o card fica sem link clicável).
   --------------------------------------------------------------------- */
   fila: {
     eyebrow: "PROJETOS EM ANDAMENTO",

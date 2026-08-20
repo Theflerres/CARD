@@ -53,6 +53,26 @@
     const s = document.getElementById("hero-btn-secondary");
     s.textContent = h.botaoSecundario.texto;
     s.href = h.botaoSecundario.href;
+
+    renderCommissionBadge();
+  }
+
+  function renderCommissionBadge() {
+    const badge = document.getElementById("commission-badge");
+    const c = SITE_CONFIG.comissoes;
+    if (!badge || !c) return;
+
+    badge.classList.toggle("commission-open", !!c.abertas);
+    badge.classList.toggle("commission-closed", !c.abertas);
+
+    const slotsTxt = c.abertas
+      ? ` · ${c.slotsDisponiveis} ${c.slotsDisponiveis === 1 ? "SLOT DISPONÍVEL" : "SLOTS DISPONÍVEIS"}`
+      : "";
+
+    badge.innerHTML = `
+      <span class="commission-dot"></span>
+      <span>${c.abertas ? c.mensagemAbertas : c.mensagemFechadas}${slotsTxt}</span>
+    `;
   }
 
   function renderServices() {
@@ -150,6 +170,33 @@
     `).join("");
   }
 
+  // Itens da Fila com status "finalizado" saem da Fila e viram cards
+  // automáticos em Histórico de Clientes — não precisam ser duplicados em
+  // SITE_CONFIG.historico.clientes.
+  function getFinalizedFilaItems() {
+    const f = SITE_CONFIG.fila;
+    if (!f) return [];
+    const music = (f.musicProjects || [])
+      .filter((p) => p.status === "finalizado")
+      .map((p) => ({
+        cliente: p.titulo,
+        tipo: "musica",
+        titulo: "Produção Musical",
+        link: p.link || null,
+        icon: p.icon || "spotify-white-icon.webp",
+      }));
+    const video = (f.videoProjects || [])
+      .filter((p) => p.status === "finalizado")
+      .map((p) => ({
+        cliente: p.titulo,
+        tipo: "video",
+        titulo: "Edição de Vídeo",
+        link: p.link || null,
+        icon: p.icon || "youtube-app-white-icon.webp",
+      }));
+    return [...music, ...video];
+  }
+
   function renderFila() {
     const f = SITE_CONFIG.fila;
     const musicList = document.getElementById("fila-music");
@@ -159,7 +206,8 @@
     document.getElementById("fila-title").textContent = f.titulo;
     document.getElementById("fila-subtitle").textContent = f.subtitulo;
 
-    musicList.innerHTML = f.musicProjects.map((p) => {
+    // Itens finalizados não aparecem mais na Fila — foram para o Histórico.
+    musicList.innerHTML = f.musicProjects.filter((p) => p.status !== "finalizado").map((p) => {
       // Converte "em producao" para "em_producao" para bater com o CSS
       const statusClass = p.status.replace(/\s+/g, '_').toLowerCase();
       return `
@@ -170,7 +218,7 @@
     `}).join("");
 
     const videoList = document.getElementById("fila-video");
-    videoList.innerHTML = f.videoProjects.map((p) => {
+    videoList.innerHTML = f.videoProjects.filter((p) => p.status !== "finalizado").map((p) => {
       const statusClass = p.status.replace(/\s+/g, '_').toLowerCase();
       return `
       <div class="fila-item fila-status-${statusClass}" data-reveal>
@@ -207,7 +255,9 @@
     document.getElementById("historico-title").textContent = h.titulo;
     document.getElementById("historico-subtitle").textContent = h.subtitulo;
 
-    grid.innerHTML = h.clientes.map((c) => {
+    const itens = [...getFinalizedFilaItems(), ...h.clientes];
+
+    grid.innerHTML = itens.map((c) => {
       const label = h.tipoLabels[c.tipo] || c.tipo;
       const tag = c.link ? "a" : "div";
       const attrs = c.link ? `href="${c.link}" target="_blank" rel="noopener"` : "";
@@ -215,7 +265,7 @@
         ? `<div class="client-card-reveal"><img src="${c.imagem}" alt="${c.titulo}" loading="lazy" /></div>`
         : `<div class="client-card-reveal">
              <span class="client-card-icon"><img src="${c.icon}" alt="" /></span>
-             <span class="client-card-cta mono">VER ${label.toUpperCase()} →</span>
+             <span class="client-card-cta mono">${c.link ? `VER ${label.toUpperCase()} →` : label.toUpperCase()}</span>
            </div>`;
       return `
         <${tag} class="bracket-card client-card client-card-${c.tipo}" ${attrs} data-reveal>

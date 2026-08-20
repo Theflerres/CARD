@@ -248,6 +248,32 @@ main{ position: relative; z-index: 2; }
 }
 .hero-content{ max-width: 780px; }
 
+.commission-badge{
+  display: flex;
+  width: max-content;
+  max-width: 100%;
+  align-items: center;
+  gap: .6rem;
+  padding: .55rem 1rem;
+  margin-bottom: 1.4rem;
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,0.03);
+  font-size: .72rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+}
+.commission-dot{
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  animation: blink 1.8s ease-in-out infinite;
+}
+.commission-open{ border-color: rgba(81,207,102,0.4); color: #cdeed4; }
+.commission-open .commission-dot{ background: #51CF66; box-shadow: 0 0 8px #51CF66; }
+.commission-closed{ border-color: rgba(255,107,107,0.4); color: #f3c9c9; }
+.commission-closed .commission-dot{ background: #FF6B6B; box-shadow: 0 0 8px #FF6B6B; }
+
 .hero-title{
   font-size: clamp(2.6rem, 6.2vw, 5.4rem);
   line-height: 1.04;
