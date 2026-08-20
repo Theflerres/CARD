@@ -41,6 +41,7 @@
 
   function renderHero() {
     const h = SITE_CONFIG.hero;
+    if (!document.getElementById("hero-eyebrow")) return;
     document.getElementById("hero-eyebrow").textContent = h.eyebrow;
     document.getElementById("hero-title").textContent = h.titulo;
     document.getElementById("hero-subtitle").textContent = h.subtitulo;
@@ -56,6 +57,7 @@
 
   function renderServices() {
     const grid = document.getElementById("services-grid");
+    if (!grid) return;
     grid.innerHTML = SITE_CONFIG.servicos.map((s) => `
       <article class="bracket-card service-card" data-reveal>
         <span class="service-number mono">${s.numero}</span>
@@ -81,6 +83,7 @@
 
   function renderPortfolio() {
     const grid = document.getElementById("portfolio-grid");
+    if (!grid) return;
     grid.innerHTML = SITE_CONFIG.portfolio.map((item) => `
       <article class="bracket-card portfolio-card" data-reveal>
         <div class="portfolio-media">
@@ -97,6 +100,7 @@
 
   function renderProcess() {
     const track = document.getElementById("process-track");
+    if (!track) return;
     track.innerHTML = SITE_CONFIG.processo.map((step) => `
       <div class="process-step" data-reveal>
         <div class="process-num">${step.numero}</div>
@@ -108,6 +112,7 @@
 
   function renderContact() {
     const c = SITE_CONFIG.contato;
+    if (!document.getElementById("contact-grid")) return;
     document.getElementById("contact-eyebrow").textContent = c.eyebrow;
     document.getElementById("contact-title").textContent = c.titulo;
     document.getElementById("contact-subtitle").textContent = c.subtitulo;
@@ -125,8 +130,9 @@
   }
 
   function renderFooter() {
-    document.getElementById("footer-text").textContent =
-      `© ${new Date().getFullYear()} ${SITE_CONFIG.footer.texto}`;
+    const el = document.getElementById("footer-text");
+    if (!el) return;
+    el.textContent = `© ${new Date().getFullYear()} ${SITE_CONFIG.footer.texto}`;
   }
 
   function renderRecentWorks() {
@@ -146,13 +152,13 @@
 
   function renderFila() {
     const f = SITE_CONFIG.fila;
-    if (!f) return;
-    
+    const musicList = document.getElementById("fila-music");
+    if (!f || !musicList) return;
+
     document.getElementById("fila-eyebrow").textContent = f.eyebrow;
     document.getElementById("fila-title").textContent = f.titulo;
     document.getElementById("fila-subtitle").textContent = f.subtitulo;
 
-    const musicList = document.getElementById("fila-music");
     musicList.innerHTML = f.musicProjects.map((p) => {
       // Converte "em producao" para "em_producao" para bater com o CSS
       const statusClass = p.status.replace(/\s+/g, '_').toLowerCase();
@@ -174,6 +180,56 @@
     `}).join("");
   }
 
+  function renderTermos() {
+    const grid = document.getElementById("termos-list");
+    if (!grid || !SITE_CONFIG.termos) return;
+    const t = SITE_CONFIG.termos;
+
+    document.getElementById("termos-eyebrow").textContent = t.eyebrow;
+    document.getElementById("termos-title").textContent = t.titulo;
+    document.getElementById("termos-subtitle").textContent = t.subtitulo;
+
+    grid.innerHTML = t.clausulas.map((c) => `
+      <article class="bracket-card termos-item" data-reveal>
+        <span class="termos-number mono">${c.numero}</span>
+        <h3>${c.titulo}</h3>
+        <p>${c.texto}</p>
+      </article>
+    `).join("");
+  }
+
+  function renderHistorico() {
+    const grid = document.getElementById("client-history-grid");
+    if (!grid || !SITE_CONFIG.historico) return;
+    const h = SITE_CONFIG.historico;
+
+    document.getElementById("historico-eyebrow").textContent = h.eyebrow;
+    document.getElementById("historico-title").textContent = h.titulo;
+    document.getElementById("historico-subtitle").textContent = h.subtitulo;
+
+    grid.innerHTML = h.clientes.map((c) => {
+      const label = h.tipoLabels[c.tipo] || c.tipo;
+      const tag = c.link ? "a" : "div";
+      const attrs = c.link ? `href="${c.link}" target="_blank" rel="noopener"` : "";
+      const reveal = c.tipo === "render"
+        ? `<div class="client-card-reveal"><img src="${c.imagem}" alt="${c.titulo}" loading="lazy" /></div>`
+        : `<div class="client-card-reveal">
+             <span class="client-card-icon"><img src="${c.icon}" alt="" /></span>
+             <span class="client-card-cta mono">VER ${label.toUpperCase()} →</span>
+           </div>`;
+      return `
+        <${tag} class="bracket-card client-card client-card-${c.tipo}" ${attrs} data-reveal>
+          <div class="client-card-face">
+            <span class="client-card-badge mono">${label}</span>
+            <h3>${c.cliente}</h3>
+            <p>${c.titulo}</p>
+          </div>
+          ${reveal}
+        </${tag}>
+      `;
+    }).join("");
+  }
+
   function renderAll() {
     applySEO();
     renderHero();
@@ -184,6 +240,8 @@
     renderFila();
     renderContact();
     renderFooter();
+    renderTermos();
+    renderHistorico();
   }
 
   /* ------------------------------------------------------------------
@@ -388,7 +446,7 @@
   /* Reobserva elementos criados dinamicamente (grids) após a renderização */
   function initGridReveal() {
     const targets = document.querySelectorAll(
-      ".services-grid [data-reveal], .portfolio-grid [data-reveal], .process-track [data-reveal], .contact-grid [data-reveal]"
+      ".services-grid [data-reveal], .portfolio-grid [data-reveal], .process-track [data-reveal], .contact-grid [data-reveal], .termos-list [data-reveal], .client-history-grid [data-reveal]"
     );
     if (REDUCED_MOTION || !("IntersectionObserver" in window)) {
       targets.forEach((el) => el.classList.add("visible"));

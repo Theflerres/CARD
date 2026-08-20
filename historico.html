@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Histórico de Clientes — Theflerres</title>
+  <meta name="description" content="Trabalhos entregues por Theflerres: produção musical, edição de vídeo e render 3D." />
+  <meta name="author" content="Theflerres" />
+  <meta name="theme-color" content="#000000" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Histórico de Clientes — Theflerres" />
+  <meta property="og:description" content="Trabalhos entregues: produção musical, edição de vídeo e render 3D." />
+
+  <link rel="icon" href="data:,">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div id="intro" aria-hidden="true">
+    <canvas id="intro-canvas"></canvas>
+    <div class="intro-label">
+      <span class="intro-dot"></span>
+      <span id="intro-text">INICIALIZANDO SCANNER</span>
+    </div>
+  </div>
+
+  <canvas id="bg-canvas" aria-hidden="true"></canvas>
+  <div id="scan-beam" aria-hidden="true"></div>
+
+  <header class="nav" id="nav">
+    <a href="index.html" class="nav-logo" id="nav-logo">THEFLERRES</a>
+
+    <nav class="nav-links" id="nav-links">
+      <a href="index.html#servicos">Serviços</a>
+      <a href="index.html#portfolio">Portfólio</a>
+      <a href="index.html#trabalhos">Trabalhos</a>
+      <a href="index.html#fila">Fila</a>
+      <a href="index.html#processo">Processo</a>
+      <a href="historico.html">Histórico</a>
+      <a href="termos.html">Termos</a>
+      <a href="index.html#contato">Contato</a>
+    </nav>
+
+    <button class="nav-toggle" id="nav-toggle" aria-label="Abrir menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </header>
+
+  <main id="top">
+    <section class="section" style="padding-top: clamp(8rem, 16vw, 12rem);" id="historico">
+      <div class="section-head reveal" data-reveal>
+        <p class="eyebrow mono" id="historico-eyebrow">TRABALHOS ENTREGUES</p>
+        <h2 id="historico-title">Histórico de Clientes</h2>
+        <p class="contact-subtitle" id="historico-subtitle"></p>
+      </div>
+
+      <div class="client-history-grid" id="client-history-grid">
+        <!-- Cards gerados dinamicamente via script.js a partir de SITE_CONFIG.historico -->
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p id="footer-text" class="mono"></p>
+    <p class="footer-status mono"><span class="pulse-dot"></span> SISTEMA ONLINE</p>
+  </footer>
+
+  <noscript>
+    <div style="padding:2rem;color:#fff;background:#000;font-family:sans-serif;">
+      Este site utiliza JavaScript para exibir seu conteúdo.
+      Por favor, habilite o JavaScript no seu navegador.
+    </div>
+  </noscript>
+
+  <script src="config.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

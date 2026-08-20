@@ -692,6 +692,90 @@ main{ position: relative; z-index: 2; }
 }
 
 /* --------------------------------------------------------------------
+   12D. TERMOS DE SERVIÇO
+-------------------------------------------------------------------- */
+.termos-list{
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  max-width: 860px;
+}
+.termos-item{
+  padding: clamp(1.6rem, 3vw, 2.2rem);
+}
+.termos-number{
+  display: block;
+  font-size: .78rem;
+  color: var(--fg-faint);
+  letter-spacing: .1em;
+  margin-bottom: .8rem;
+}
+.termos-item h3{ font-size: 1.15rem; margin-bottom: .7rem; }
+.termos-item p{ font-size: .92rem; color: var(--fg-dim); line-height: 1.7; }
+
+/* --------------------------------------------------------------------
+   12E. HISTÓRICO DE CLIENTES
+-------------------------------------------------------------------- */
+.client-history-grid{
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.4rem;
+}
+.client-card{
+  position: relative;
+  aspect-ratio: 4/3;
+  display: block;
+  overflow: hidden;
+}
+.client-card-face{
+  position: absolute;
+  inset: 0;
+  padding: clamp(1.2rem, 3vw, 1.6rem);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  z-index: 2;
+  transition: opacity .4s var(--ease);
+}
+.client-card-badge{
+  font-size: .68rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+  margin-bottom: .5rem;
+}
+.client-card-face h3{ font-size: 1.05rem; margin-bottom: .35rem; }
+.client-card-face p{ font-size: .8rem; color: var(--fg-dim); }
+
+.client-card-reveal{
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .8rem;
+  background: rgba(0,0,0,.9);
+  opacity: 0;
+  transition: opacity .4s var(--ease);
+  z-index: 3;
+  text-align: center;
+  padding: 1rem;
+}
+.client-card:hover .client-card-reveal{ opacity: 1; }
+.client-card:hover .client-card-face{ opacity: 0; }
+
+.client-card-icon{ width: 46px; height: 46px; }
+.client-card-icon img{ width: 100%; height: 100%; object-fit: contain; }
+.client-card-cta{ font-size: .72rem; letter-spacing: .1em; color: var(--fg); }
+
+.client-card-render .client-card-reveal{ background: none; padding: 0; }
+.client-card-render .client-card-reveal img{
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+
+/* --------------------------------------------------------------------
    13. FOOTER
 -------------------------------------------------------------------- */
 .footer{
@@ -729,13 +813,13 @@ main{ position: relative; z-index: 2; }
   transform: translateY(0);
   filter: blur(0);
 }
-.services-grid > *, .portfolio-grid > *, .recent-works-grid > *, .fila-list > *, .process-track > *, .contact-grid > *{
+.services-grid > *, .portfolio-grid > *, .recent-works-grid > *, .fila-list > *, .process-track > *, .contact-grid > *, .termos-list > *, .client-history-grid > *{
   opacity: 0;
   transform: translateY(24px);
   filter: blur(5px);
   transition: opacity .8s var(--ease), transform .8s var(--ease), filter .8s var(--ease);
 }
-.services-grid > *.visible, .portfolio-grid > *.visible, .recent-works-grid > *.visible, .fila-list > *.visible, .process-track > *.visible, .contact-grid > *.visible{
+.services-grid > *.visible, .portfolio-grid > *.visible, .recent-works-grid > *.visible, .fila-list > *.visible, .process-track > *.visible, .contact-grid > *.visible, .termos-list > *.visible, .client-history-grid > *.visible{
   opacity: 1;
   transform: translateY(0);
   filter: blur(0);
@@ -747,6 +831,7 @@ main{ position: relative; z-index: 2; }
 @media (max-width: 980px){
   .portfolio-grid{ grid-template-columns: repeat(2, 1fr); }
   .recent-works-grid{ grid-template-columns: repeat(2, 1fr); }
+  .client-history-grid{ grid-template-columns: repeat(2, 1fr); }
   .fila-container{ grid-template-columns: 1fr; }
   .process-track{ grid-template-columns: repeat(2, 1fr); gap: 2rem; }
   .process-step:nth-child(1)::after,
@@ -779,6 +864,7 @@ main{ position: relative; z-index: 2; }
   .services-grid{ grid-template-columns: 1fr; }
   .portfolio-grid{ grid-template-columns: 1fr; }
   .recent-works-grid{ grid-template-columns: 1fr; }
+  .client-history-grid{ grid-template-columns: 1fr; }
   .fila-container{ grid-template-columns: 1fr; }
   .process-track{ grid-template-columns: 1fr; padding: 0; }
   .process-step::after{ display: none; }
