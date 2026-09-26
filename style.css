@@ -274,6 +274,25 @@ main{ position: relative; z-index: 2; }
 .commission-closed{ border-color: rgba(255,107,107,0.4); color: #f3c9c9; }
 .commission-closed .commission-dot{ background: #FF6B6B; box-shadow: 0 0 8px #FF6B6B; }
 
+/* Visualizador de slots: um quadrado por slot, logo abaixo do badge */
+.commission-slots{
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+  margin: -.6rem 0 1.4rem;
+}
+.commission-slots[hidden]{ display: none; }
+.commission-slot{
+  width: 14px; height: 14px;
+  border: 1px solid var(--line-strong);
+  background: transparent;
+  transition: background .4s ease, border-color .4s ease;
+}
+.commission-slots.commission-open .commission-slot{ border-color: rgba(81,207,102,0.5); }
+.commission-slots.commission-open .commission-slot.filled{ background: #51CF66; border-color: #51CF66; }
+.commission-slots.commission-closed .commission-slot{ border-color: rgba(255,107,107,0.5); }
+.commission-slots.commission-closed .commission-slot.filled{ background: #FF6B6B; border-color: #FF6B6B; }
+
 .hero-title{
   font-size: clamp(2.6rem, 6.2vw, 5.4rem);
   line-height: 1.04;
@@ -820,6 +839,179 @@ main{ position: relative; z-index: 2; }
 .client-card-render .client-card-reveal img{
   width: 100%; height: 100%;
   object-fit: cover;
+}
+.client-card-render{ cursor: zoom-in; }
+
+/* Abas de filtro (Render | Edição de Vídeo | Música) */
+.historico-tabs{
+  display: flex;
+  flex-wrap: wrap;
+  gap: .6rem;
+  margin-bottom: 2.4rem;
+}
+.historico-tab{
+  font-family: var(--font-mono);
+  font-size: .72rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+  background: none;
+  border: 1px solid var(--line);
+  padding: .6rem 1.1rem;
+  cursor: pointer;
+  transition: color .3s ease, border-color .3s ease, background .3s ease;
+}
+.historico-tab:hover{ color: var(--fg); border-color: var(--line-strong); }
+.historico-tab.active{ color: var(--bg); background: var(--fg); border-color: var(--fg); }
+.historico-tab-count{ opacity: .6; margin-left: .5rem; }
+
+/* Itens de outras abas / grupos recolhidos */
+.client-history-grid{ grid-auto-flow: dense; }
+.client-history-grid > [hidden]{ display: none !important; }
+
+/* Grupo de cliente com vários renders */
+.client-card-group{ cursor: pointer; }
+.client-card-group[aria-expanded="true"]{ border-color: var(--line-strong); }
+.client-group-cta{
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  padding: .7rem 1rem;
+  font-size: .72rem;
+  letter-spacing: .1em;
+  color: var(--fg);
+  background: rgba(0,0,0,.75);
+}
+.client-group-panel{
+  grid-column: 1 / -1;
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, var(--panel-2), var(--panel));
+  padding: clamp(1.2rem, 3vw, 1.6rem);
+}
+.client-group-head{
+  font-size: .72rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+  margin-bottom: 1rem;
+}
+.client-group-works{
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+}
+.client-group-work{
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+  padding: 0 0 .7rem;
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--fg-dim);
+  font: inherit;
+  text-align: left;
+  cursor: zoom-in;
+  transition: border-color .3s ease, color .3s ease;
+}
+.client-group-work:hover{ border-color: var(--line-strong); color: var(--fg); }
+.client-group-work img{
+  display: block;
+  width: 100%;
+  aspect-ratio: 4/3;
+  object-fit: cover;
+}
+.client-group-work > span.mono{ font-size: .72rem; letter-spacing: .06em; padding: 0 .7rem; }
+.client-group-work-media{ position: relative; display: block; }
+
+/* Vídeo com thumbnail: a imagem fica ao fundo, ícone e link por cima */
+.client-card-thumb{
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  opacity: .4;
+}
+.client-card-video .client-card-icon,
+.client-card-video .client-card-cta{ position: relative; z-index: 1; }
+
+/* Trabalho sob sigilo: só a versão borrada + aviso */
+.client-sigilo, .client-group-work.client-sigilo{ cursor: pointer; }
+.client-sigilo-tag{
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  padding: .45rem .8rem;
+  border: 1px solid var(--line-strong);
+  background: rgba(0,0,0,.7);
+  color: var(--fg);
+  font-size: .68rem;
+  letter-spacing: .14em;
+  white-space: nowrap;
+}
+
+/* --------------------------------------------------------------------
+   12F. VISUALIZADOR DE IMAGEM (lightbox)
+-------------------------------------------------------------------- */
+.recent-work-card[data-lightbox]{ cursor: zoom-in; }
+.lightbox{
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--gutter);
+  background: rgba(0,0,0,.94);
+  cursor: zoom-out;
+}
+.lightbox[hidden]{ display: none; }
+.lightbox figure{
+  margin: 0;
+  max-width: min(1200px, 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+.lightbox img{
+  max-width: 100%;
+  max-height: 80vh;
+  object-fit: contain;
+  border: 1px solid var(--line);
+}
+.lightbox figcaption{
+  font-size: .75rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+  text-align: center;
+}
+.lightbox figure[hidden], .lightbox-sigilo[hidden]{ display: none; }
+.lightbox-sigilo{
+  max-width: 460px;
+  padding: clamp(1.6rem, 4vw, 2.4rem);
+  border: 1px solid var(--line-strong);
+  background: linear-gradient(180deg, var(--panel-2), var(--panel));
+  text-align: center;
+}
+.lightbox-sigilo-tag{
+  font-size: .72rem;
+  letter-spacing: .14em;
+  color: var(--fg-faint);
+  margin-bottom: 1rem;
+}
+.lightbox-sigilo-msg{ font-size: 1rem; color: var(--fg); line-height: 1.6; margin-bottom: 1rem; }
+.lightbox-sigilo-caption{ font-size: .7rem; letter-spacing: .1em; text-transform: uppercase; color: var(--fg-dim); }
+.lightbox-close{
+  position: absolute;
+  top: 1.2rem;
+  right: var(--gutter);
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--fg);
+  font-size: .7rem;
+  letter-spacing: .12em;
+  padding: .5rem .9rem;
+  cursor: pointer;
 }
 
 /* --------------------------------------------------------------------

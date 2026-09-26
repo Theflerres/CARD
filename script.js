@@ -62,17 +62,37 @@
     const c = SITE_CONFIG.comissoes;
     if (!badge || !c) return;
 
-    badge.classList.toggle("commission-open", !!c.abertas);
-    badge.classList.toggle("commission-closed", !c.abertas);
+    const total = Math.max(0, c.totalSlots || 0);
+    const ocupados = Math.min(total, Math.max(0, c.slotsOcupados || 0));
+    const disponiveis = total - ocupados;
+    const lotado = c.abertas && disponiveis === 0;
+    const aberto = c.abertas && !lotado;
 
-    const slotsTxt = c.abertas
-      ? ` · ${c.slotsDisponiveis} ${c.slotsDisponiveis === 1 ? "SLOT DISPONÍVEL" : "SLOTS DISPONÍVEIS"}`
+    badge.classList.toggle("commission-open", aberto);
+    badge.classList.toggle("commission-closed", !aberto);
+
+    const mensagem = aberto ? c.mensagemAbertas : (lotado ? c.mensagemLotadas : c.mensagemFechadas);
+    const slotsTxt = aberto
+      ? ` · ${disponiveis} ${disponiveis === 1 ? "SLOT DISPONÍVEL" : "SLOTS DISPONÍVEIS"}`
       : "";
 
     badge.innerHTML = `
       <span class="commission-dot"></span>
-      <span>${c.abertas ? c.mensagemAbertas : c.mensagemFechadas}${slotsTxt}</span>
+      <span>${mensagem}${slotsTxt}</span>
     `;
+
+    // Fileira de quadrados: um por slot (preenchido = ocupado, vazio = livre).
+    // Só aparece com as comissões abertas (inclusive lotadas).
+    const slots = document.getElementById("commission-slots");
+    if (!slots) return;
+    slots.hidden = !c.abertas || total === 0;
+    slots.classList.toggle("commission-open", aberto);
+    slots.classList.toggle("commission-closed", !aberto);
+    slots.setAttribute("role", "img");
+    slots.setAttribute("aria-label", `${ocupados} de ${total} slots ocupados`);
+    slots.innerHTML = Array.from({ length: total }, (_, i) =>
+      `<span class="commission-slot${i < ocupados ? " filled" : ""}"></span>`
+    ).join("");
   }
 
   function renderServices() {
@@ -159,16 +179,23 @@
   function renderRecentWorks() {
     const grid = document.getElementById("recent-works-grid");
     if (!grid || !SITE_CONFIG.trabalhosRecentes) return;
-    grid.innerHTML = SITE_CONFIG.trabalhosRecentes.map((item) => `
-      <a class="bracket-card recent-work-card" data-reveal href="${item.link}" target="_blank" rel="noopener">
+    // Com "link": abre em nova aba. Sem "link": abre a imagem ampliada.
+    grid.innerHTML = SITE_CONFIG.trabalhosRecentes.map((item) => {
+      const src = encodeURI(item.imagem);
+      const tag = item.link ? "a" : "div";
+      const attrs = item.link
+        ? `href="${item.link}" target="_blank" rel="noopener"`
+        : `role="button" tabindex="0" data-lightbox="${src}" data-caption="${escapeAttr(item.titulo)}"`;
+      return `
+      <${tag} class="bracket-card recent-work-card" data-reveal ${attrs}>
         <div class="recent-work-media">
-          <img src="${item.imagem}" alt="${item.titulo}" loading="lazy" />
+          <img src="${src}" alt="${escapeAttr(item.titulo)}" loading="lazy" />
         </div>
         <div class="recent-work-body">
           <h3>${item.titulo}</h3>
         </div>
-      </a>
-    `).join("");
+      </${tag}>
+    `}).join("");
   }
 
   // Itens da Fila com status "finalizado" saem da Fila e viram cards
@@ -256,20 +283,60 @@
     document.getElementById("historico-title").textContent = h.titulo;
     document.getElementById("historico-subtitle").textContent = h.subtitulo;
 
-    const itens = [...getFinalizedFilaItems(), ...h.clientes];
+    const itens = [...getRenderItems(), ...getFinalizedFilaItems(), ...h.clientes];
 
-    grid.innerHTML = itens.map((c) => {
+    grid.innerHTML = itens.map((c, i) => {
       const label = h.tipoLabels[c.tipo] || c.tipo;
-      const tag = c.link ? "a" : "div";
-      const attrs = c.link ? `href="${c.link}" target="_blank" rel="noopener"` : "";
+
+      // Cliente com vários renders: card de grupo + painel que expande
+      if (c.trabalhos) {
+        const n = c.trabalhos.length;
+        return `
+          <div class="bracket-card client-card client-card-render client-card-group" data-categoria="render" data-grupo="${i}" role="button" tabindex="0" aria-expanded="false" data-reveal>
+            <div class="client-card-face">
+              <span class="client-card-badge mono">${label}</span>
+              <h3>${c.cliente}</h3>
+              <p>${n} trabalhos</p>
+            </div>
+            <div class="client-card-reveal">
+              <img src="${c.trabalhos[0].imagem}" alt="" loading="lazy" />
+              <span class="client-group-cta mono">VER ${n} TRABALHOS +</span>
+            </div>
+          </div>
+          <div class="client-group-panel visible" data-categoria="render" data-grupo-panel="${i}" hidden>
+            <p class="client-group-head mono">${c.cliente} — ${n} trabalhos</p>
+            <div class="client-group-works">
+              ${c.trabalhos.map((t) => `
+                <button type="button" class="client-group-work${t.sigilo ? " client-sigilo" : ""}" ${abrirAttrs(t, c.cliente)}>
+                  <span class="client-group-work-media">
+                    <img src="${t.imagem}" alt="${t.sigilo ? "" : escapeAttr(t.titulo)}" loading="lazy" />
+                    ${t.sigilo ? SIGILO_TAG : ""}
+                  </span>
+                  <span class="mono">${t.titulo}</span>
+                </button>
+              `).join("")}
+            </div>
+          </div>
+        `;
+      }
+
+      let tag = "div";
+      let attrs = "";
+      if (c.tipo === "render") {
+        attrs = `role="button" tabindex="0" ${abrirAttrs(c, c.cliente)}`;
+      } else if (c.link) {
+        tag = "a";
+        attrs = `href="${c.link}" target="_blank" rel="noopener"`;
+      }
       const reveal = c.tipo === "render"
-        ? `<div class="client-card-reveal"><img src="${c.imagem}" alt="${c.titulo}" loading="lazy" /></div>`
+        ? `<div class="client-card-reveal"><img src="${c.imagem}" alt="${c.sigilo ? "" : escapeAttr(c.titulo)}" loading="lazy" />${c.sigilo ? SIGILO_TAG : ""}</div>`
         : `<div class="client-card-reveal">
+             ${c.imagem ? `<img class="client-card-thumb" src="${c.imagem}" alt="" loading="lazy" />` : ""}
              <span class="client-card-icon"><img src="${c.icon}" alt="" /></span>
              <span class="client-card-cta mono">${c.link ? `VER ${label.toUpperCase()} →` : label.toUpperCase()}</span>
            </div>`;
       return `
-        <${tag} class="bracket-card client-card client-card-${c.tipo}" ${attrs} data-reveal>
+        <${tag} class="bracket-card client-card client-card-${c.tipo}${c.sigilo ? " client-sigilo" : ""}" data-categoria="${c.tipo}" ${attrs} data-reveal>
           <div class="client-card-face">
             <span class="client-card-badge mono">${label}</span>
             <h3>${c.cliente}</h3>
@@ -279,6 +346,164 @@
         </${tag}>
       `;
     }).join("");
+
+    // Expande/recolhe grupos de cliente
+    grid.querySelectorAll("[data-grupo]").forEach((card) => {
+      card.addEventListener("click", () => {
+        const panel = grid.querySelector(`[data-grupo-panel="${card.dataset.grupo}"]`);
+        const open = card.getAttribute("aria-expanded") !== "true";
+        card.setAttribute("aria-expanded", String(open));
+        panel.hidden = !open;
+      });
+    });
+
+    renderHistoricoTabs(itens);
+  }
+
+  // Abas de filtro: Render | Edição de Vídeo | Música
+  function renderHistoricoTabs(itens) {
+    const tabs = document.getElementById("historico-tabs");
+    const grid = document.getElementById("client-history-grid");
+    if (!tabs) return;
+    const labels = SITE_CONFIG.historico.tipoLabels;
+    const categorias = Object.keys(labels);
+    // Conta trabalhos (não cards): um grupo conta cada render dele
+    const contagem = (cat) => itens
+      .filter((c) => c.tipo === cat)
+      .reduce((n, c) => n + (c.trabalhos ? c.trabalhos.length : 1), 0);
+
+    tabs.innerHTML = categorias.map((cat) => `
+      <button type="button" class="historico-tab" role="tab" data-filtro="${cat}">
+        ${labels[cat]}<span class="historico-tab-count">${contagem(cat)}</span>
+      </button>
+    `).join("");
+
+    function selecionar(cat) {
+      tabs.querySelectorAll(".historico-tab").forEach((b) => {
+        const ativo = b.dataset.filtro === cat;
+        b.classList.toggle("active", ativo);
+        b.setAttribute("aria-selected", String(ativo));
+      });
+      grid.querySelectorAll("[data-categoria]").forEach((el) => {
+        if (el.dataset.grupoPanel !== undefined) {
+          el.hidden = true; // painéis de grupo sempre recolhem ao trocar de aba
+        } else {
+          el.hidden = el.dataset.categoria !== cat;
+        }
+      });
+      grid.querySelectorAll("[data-grupo]").forEach((g) => g.setAttribute("aria-expanded", "false"));
+    }
+
+    tabs.addEventListener("click", (e) => {
+      const btn = e.target.closest(".historico-tab");
+      if (btn) selecionar(btn.dataset.filtro);
+    });
+    selecionar(categorias[0]);
+  }
+
+  // Renders da pasta assets/Blender: "Título_Cliente.ext"
+  function parseRenderFilename(arquivo) {
+    const base = arquivo.replace(/\.[^.]+$/, "");
+    const i = base.lastIndexOf("_");
+    if (i === -1) {
+      console.warn(`Render sem "_Cliente" no nome: ${arquivo}`);
+      return { titulo: base, cliente: "" };
+    }
+    return { titulo: base.slice(0, i).trim(), cliente: base.slice(i + 1).trim() };
+  }
+
+  function getRenderItems() {
+    const h = SITE_CONFIG.historico;
+    const porCliente = new Map();
+    // Cada item é o nome do arquivo ou { arquivo, titulo, sigilo }
+    (h.renders || []).forEach((item) => {
+      const arquivo = typeof item === "string" ? item : item.arquivo;
+      const { titulo: tituloArquivo, cliente } = parseRenderFilename(arquivo);
+      const titulo = (typeof item === "object" && item.titulo) || tituloArquivo;
+      const sigilo = typeof item === "object" && !!item.sigilo;
+      // Sob sigilo, o caminho do original nunca é montado: só a versão borrada
+      const imagem = sigilo
+        ? encodeURI(`${h.pastaSigilo}/${arquivo.replace(/\.[^.]+$/, "")}.jpg`)
+        : encodeURI(`${h.pastaRenders}/${arquivo}`);
+      if (!porCliente.has(cliente)) porCliente.set(cliente, []);
+      porCliente.get(cliente).push({ titulo, imagem, sigilo });
+    });
+    return [...porCliente].map(([cliente, trabalhos]) => trabalhos.length > 1
+      ? { tipo: "render", cliente, trabalhos }
+      : { tipo: "render", cliente, ...trabalhos[0] });
+  }
+
+  const SIGILO_TAG = `<span class="client-sigilo-tag mono">EM SIGILO</span>`;
+
+  // Clique num render: amplia a imagem ou, sob sigilo, mostra o aviso
+  function abrirAttrs(t, cliente) {
+    const caption = escapeAttr(`${t.titulo} — ${cliente}`);
+    return t.sigilo
+      ? `data-sigilo data-caption="${caption}"`
+      : `data-lightbox="${t.imagem}" data-caption="${caption}"`;
+  }
+
+  function escapeAttr(str) {
+    return String(str).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+  }
+
+  /* ------------------------------------------------------------------
+     VISUALIZADOR DE IMAGEM (lightbox)
+     Qualquer elemento com data-lightbox="caminho" abre a imagem ampliada;
+     com data-sigilo, abre o aviso de sigilo no lugar da imagem.
+  ------------------------------------------------------------------ */
+  function initLightbox() {
+    const box = document.createElement("div");
+    box.className = "lightbox";
+    box.hidden = true;
+    box.setAttribute("role", "dialog");
+    box.setAttribute("aria-modal", "true");
+    box.innerHTML = `
+      <button type="button" class="lightbox-close mono" aria-label="Fechar">FECHAR ✕</button>
+      <figure>
+        <img alt="" />
+        <figcaption class="mono"></figcaption>
+      </figure>
+      <div class="lightbox-sigilo" hidden>
+        <p class="lightbox-sigilo-tag mono">EM SIGILO</p>
+        <p class="lightbox-sigilo-msg"></p>
+        <p class="lightbox-sigilo-caption mono"></p>
+      </div>
+    `;
+    document.body.appendChild(box);
+    const figure = box.querySelector("figure");
+    const img = box.querySelector("img");
+    const caption = box.querySelector("figcaption");
+    const sigilo = box.querySelector(".lightbox-sigilo");
+
+    const fechar = () => { box.hidden = true; img.removeAttribute("src"); };
+
+    document.addEventListener("click", (e) => {
+      const alvo = e.target.closest("[data-lightbox], [data-sigilo]");
+      if (!alvo) return;
+      const emSigilo = alvo.hasAttribute("data-sigilo");
+      figure.hidden = emSigilo;
+      sigilo.hidden = !emSigilo;
+      if (emSigilo) {
+        sigilo.querySelector(".lightbox-sigilo-msg").textContent = SITE_CONFIG.historico.mensagemSigilo;
+        sigilo.querySelector(".lightbox-sigilo-caption").textContent = alvo.dataset.caption || "";
+      } else {
+        img.src = alvo.dataset.lightbox;
+        img.alt = alvo.dataset.caption || "";
+        caption.textContent = alvo.dataset.caption || "";
+      }
+      box.hidden = false;
+    });
+    box.addEventListener("click", fechar);
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !box.hidden) fechar();
+      // Cards com role="button" respondem a Enter/Espaço
+      const el = document.activeElement;
+      if ((e.key === "Enter" || e.key === " ") && el && el.getAttribute("role") === "button" && el.tagName !== "BUTTON") {
+        e.preventDefault();
+        el.click();
+      }
+    });
   }
 
   function renderAll() {
@@ -586,6 +811,7 @@
   ------------------------------------------------------------------ */
   document.addEventListener("DOMContentLoaded", () => {
     renderAll();
+    initLightbox();
     initNav();
     initReveal();
     initGridReveal();

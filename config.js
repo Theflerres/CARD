@@ -30,19 +30,26 @@ const SITE_CONFIG = {
   /* ---------------------------------------------------------------------
      0B. STATUS DE COMISSÕES
      Exibido em destaque no topo do site (Hero).
+     Slots disponíveis = totalSlots − slotsOcupados. Ao pegar uma comissão,
+     basta aumentar "slotsOcupados". Com todos ocupados, o badge muda
+     sozinho para "mensagemLotadas".
   --------------------------------------------------------------------- */
   comissoes: {
-    abertas: false,
-    slotsDisponiveis: 5,
+    abertas: true,
+    totalSlots: 7,
+    slotsOcupados: 0,
     mensagemAbertas: "COMISSÕES ABERTAS",
     mensagemFechadas: "COMISSÕES FECHADAS NO MOMENTO",
+    mensagemLotadas: "COMISSÕES LOTADAS",
   },
 
   /* ---------------------------------------------------------------------
      1. HERO
   --------------------------------------------------------------------- */
   hero: {
-    eyebrow: "PRODUÇÃO MUSICAL — EDIÇÃO DE VÍDEO — ",
+    // "\u00A0" = espaço que não quebra: mantém cada "—" junto da palavra
+    // anterior, para o travessão não ficar sozinho na linha no celular.
+    eyebrow: "PRODUÇÃO MUSICAL\u00A0— EDIÇÃO DE VÍDEO\u00A0— RENDER 3D",
     titulo: "TheFlerre's Card.",
     subtitulo:
       "Produção musical e edição de vídeo para projetos que precisam se destacar.",
@@ -58,6 +65,10 @@ const SITE_CONFIG = {
     {
       numero: "01",
       titulo: "Produção Musical",
+      // Serviço pausado no momento — o aviso abaixo aparece como uma faixa sobre o card.
+      // Para reativar, apague (ou defina como false) o campo "indisponivel".
+      indisponivel: true,
+      avisoIndisponivel: "EM PAUSA",
       descricao:
         "Composição, arranjo e mixagem de trilhas originais de temas orquestrais a texturas eletrônicas, moldadas para a identidade sonora do seu projeto.",
       recursos: [
@@ -92,12 +103,8 @@ const SITE_CONFIG = {
     {
       numero: "03",
       titulo: "Render 3D (Blender)",
-      // Serviço pausado no momento — o aviso abaixo aparece como uma faixa sobre o card.
-      // Para reativar, apague (ou defina como false) o campo "indisponivel".
-      indisponivel: true,
-      avisoIndisponivel: "EM PAUSA",
       descricao:
-        "Renderização 3D no Blender focada em modelos de Minecraft (skins, personagens, builds). Não sou modelador — o cliente precisa fornecer o modelo pronto, em Blockbench (.bbmodel) ou glTF (.gltf/.glb). De um headshot simples para foto de perfil até um wallpaper completo. Animações e loops ainda não são oferecidos devido a limitações de hardware.",
+        "Renderização 3D no Blender focada em modelos de Minecraft (skins, personagens, builds). Não sou modelador, o cliente precisa fornecer o modelo pronto, em Blockbench (.bbmodel) ou glTF (.gltf/.glb). De um headshot simples para foto de perfil até um wallpaper completo. Animações e loops ainda não são oferecidos devido a limitações de hardware.",
       recursos: [
         "Render de modelos de Minecraft (skins, personagens, builds)",
         "Cliente fornece o modelo: Blockbench (.bbmodel) ou glTF (.gltf/.glb)",
@@ -107,7 +114,7 @@ const SITE_CONFIG = {
         "Entrega em alta resolução (PNG)",
       ],
       pacotes: [
-        { nome: "Render Simples", preco: "R$ 5", prazo: "sob consulta" },
+        { nome: "Render Simples", preco: "R$ 15", prazo: "sob consulta" },
         { nome: "Render Complexo", preco: "R$ 50", prazo: "sob consulta" },
       ],
     },
@@ -141,16 +148,15 @@ const SITE_CONFIG = {
      3B. TRABALHOS RECENTES
      Galeria de projetos recentes com imagens do projeto.
   --------------------------------------------------------------------- */
+  // "link" é opcional: sem link, clicar no card abre a imagem ampliada.
   trabalhosRecentes: [
     {
-      imagem: "logo album anti espiral.png",
-      titulo: "Álbum Anti-Espiral",
-      link: "https://open.spotify.com/intl-pt/album/4EwuJ7gFCC5kGjtM2JaZzw?si=s8xlodwqQrGBLKI7tWgAcQ",
+      imagem: "assets/Blender/Zilla e sirus_Equinox.png",
+      titulo: "Zilla e sirus",
     },
     {
-      imagem: "nova capa espiralium_final.png",
-      titulo: "Nova Capa Espiralum",
-      link: "https://open.spotify.com/intl-pt/album/2fNIPPAkr3uBjjHwzVDqly?si=ne7T-AkDStm4z-tX6OO44A",
+      imagem: "assets/Blender/Sirius praia_Equinox.jpg",
+      titulo: "Sirius praia",
     },
   ],
 
@@ -233,20 +239,64 @@ const SITE_CONFIG = {
      tipo: "musica" | "video" | "render"
        - "musica"/"video": usa "icon" (ícone da plataforma) e "link" (abre em nova aba)
        - "render": usa "imagem" (preview que aparece ao passar o mouse)
+       - "video" com "imagem": a imagem aparece ao fundo, com ícone e link por cima
   --------------------------------------------------------------------- */
   historico: {
     eyebrow: "TRABALHOS ENTREGUES",
     titulo: "Histórico de Clientes",
-    subtitulo: "Passe o mouse sobre um card para ver o que foi entregue para cada cliente.",
+    subtitulo: "Toque ou clique em um card para ver o que foi entregue para cada cliente.",
+    // A ordem aqui define a ordem das abas de filtro (a primeira abre selecionada).
     tipoLabels: {
+      render: "Render",
+      video: "Edição de Vídeo",
       musica: "Música",
-      video: "Vídeo",
-      render: "Render 3D",
     },
-    // Nenhum cliente cadastrado manualmente ainda — os cards de trabalhos
-    // finalizados na Fila aparecem aqui automaticamente. Adicione objetos
-    // aqui para trabalhos que não passaram pela Fila.
-    clientes: [],
+    // RENDERS 3D — todos os arquivos da pasta abaixo entram na aba Render.
+    // Nome do arquivo: "Título_Cliente.ext" (o texto após o último "_" é o
+    // cliente). Clientes com mais de um render viram um grupo expansível.
+    // Render novo? Basta adicionar uma linha com o nome do arquivo.
+    // Título diferente do nome do arquivo? Use um objeto no lugar da string:
+    //   { arquivo: "Diretores2_Equinox.png", titulo: "Diretores" },
+    // O cliente continua vindo do nome do arquivo.
+    //
+    // SIGILO — { arquivo: "...", sigilo: true }: o card mostra só a versão
+    // borrada de "pastaSigilo" (mesmo nome, extensão .jpg) e, ao clicar,
+    // exibe "mensagemSigilo". O site nunca monta o caminho do original, que
+    // deve ficar fora do site em _privado/ (ignorada pelo git).
+    // Fim do sigilo: devolva o original para assets/Blender/, apague o
+    // "sigilo: true" e (opcional) a versão borrada em assets/sigilo/.
+    pastaRenders: "assets/Blender",
+    pastaSigilo: "assets/sigilo",
+    mensagemSigilo: "O cliente pediu sigilo até o lançamento oficial da arte em seu projeto.",
+    renders: [
+      { arquivo: "Banner Aurora Live_Aurora Mortis.png", sigilo: true },
+      "Bott e P3_FCN.png",
+      { arquivo: "Bott rosto 4_FCN.png", titulo: "Bott – Rosto" },
+      { arquivo: "Diretores2_Equinox.png", titulo: "Diretores" },
+      { arquivo: "Encontro2_Equinox.png", titulo: "Encontro" },
+      { arquivo: "Half Body Bott_FCN.png", titulo: "Bott – Half Body" },
+      { arquivo: "KANEKA Espelho_Kaneka.png", titulo: "Kaneka – Espelho" },
+      { arquivo: "Logo album anti espiral_Espiralium.png", titulo: "Logo Álbum Anti-Espiral" },
+      { arquivo: "Perfil p3_FCN.png", titulo: "Perfil P3" },
+      { arquivo: "Sirius praia_Equinox.jpg", titulo: "Sirius na Praia" },
+      { arquivo: "Sirus_Equinox.png", titulo: "Sirius" },
+      { arquivo: "Tom foto de Perfil_Espiralium.png", titulo: "Tom – Foto de Perfil" },
+      { arquivo: "Zilla e sirus_Equinox.png", titulo: "Zilla e Sirius" },
+      "Zilla_Equinox.png",
+    ],
+    // Os cards de trabalhos finalizados na Fila aparecem aqui automaticamente.
+    // Adicione objetos aqui para trabalhos que não passaram pela Fila.
+    // Em "video", "imagem" é opcional (ex.: thumbnail do YouTube).
+    clientes: [
+      {
+        tipo: "video",
+        cliente: "Aurora Mortis",
+        titulo: "Alvorecer da Morte - Aurora Mortis Trailer Oficial",
+        link: "https://youtu.be/gpKwpTIKtYw",
+        imagem: "https://img.youtube.com/vi/gpKwpTIKtYw/hqdefault.jpg",
+        icon: "youtube-app-white-icon.webp",
+      },
+    ],
   },
 
   /* ---------------------------------------------------------------------
@@ -287,9 +337,9 @@ const SITE_CONFIG = {
     subtitulo: "Veja quais projetos estou desenvolvendo no momento.",
     musicProjects: [
       { titulo: "Single Aurora Mortis", status: "finalizado" },
-      { titulo: "Album Espiralium Era 2", status: "finalizado" },
-      { titulo: "Album Espiralium Era 2 Anti-Espiral", status: "finalizado" },
-      { titulo: "Album Espiralium Era 2 Deluxe", status: "finalizado" },
+      { titulo: "Album Espiralium Era 2", status: "finalizado", link: "https://open.spotify.com/intl-pt/album/2fNIPPAkr3uBjjHwzVDqly?si=rTjne6L2ReuuSsoejFaeBA" },
+      { titulo: "Album Espiralium Era 2 Anti-Espiral", status: "finalizado", link: "https://open.spotify.com/intl-pt/album/4EwuJ7gFCC5kGjtM2JaZzw?si=ssF23VCyQTqp2FG7a3nAgA" },
+      { titulo: "Album Espiralium Era 2 Deluxe", status: "finalizado", link: "https://open.spotify.com/intl-pt/album/7z49fWQSpJdRYJQ5cHGMJM?si=OBUMD49JTY-TjLp1KsE7gg" },
       { titulo: "Album Ordem Paranormal Genesis", status: "em producao" },
       { titulo: "Album BTWO - Tempestade Vermelha", status: "em espera" },
     ],
@@ -297,7 +347,7 @@ const SITE_CONFIG = {
       { titulo: "FCNSMP", status: "em producao" },
       { titulo: "EquinoxSMP", status: "em producao" },
       { titulo: "Aurora Mortis", status: "em producao" },
-      { titulo: "Espiralium Era 2", status: "finalizado" },
+      { titulo: "Espiralium Era 2", status: "finalizado", link: "https://www.youtube.com/@EspiraliumEra2" },
     ],
     statusLabels: {
       em_producao: "Em Produção",
