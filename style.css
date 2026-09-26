@@ -666,6 +666,30 @@ main{ position: relative; z-index: 2; }
   font-size: 1.2rem;
   margin: 0;
 }
+.recent-work-client{
+  margin-top: .4rem;
+  font-size: .7rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+}
+/* Vídeo/música sem imagem: ícone da plataforma centralizado */
+.recent-work-media-icon{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid var(--line);
+}
+.recent-work-media-icon img.recent-work-icon{
+  width: 64px; height: 64px;
+  object-fit: contain;
+}
+.recent-works-more{
+  display: flex;
+  justify-content: center;
+  margin-top: 2.4rem;
+}
+.section[hidden], .nav-links a[hidden]{ display: none !important; }
 
 /* --------------------------------------------------------------------
    12C. FILA / LISTA DE ESPERA
@@ -869,18 +893,64 @@ main{ position: relative; z-index: 2; }
 .client-history-grid{ grid-auto-flow: dense; }
 .client-history-grid > [hidden]{ display: none !important; }
 
-/* Grupo de cliente com vários renders */
+/* Grupo de cliente com vários renders: capa em mosaico */
 .client-card-group{ cursor: pointer; }
 .client-card-group[aria-expanded="true"]{ border-color: var(--line-strong); }
-.client-group-cta{
+.client-group-mosaic{
   position: absolute;
-  left: 0; right: 0; bottom: 0;
-  padding: .7rem 1rem;
-  font-size: .72rem;
-  letter-spacing: .1em;
-  color: var(--fg);
-  background: rgba(0,0,0,.75);
+  inset: 0;
+  display: grid;
+  gap: 2px;
+  background: var(--bg);
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
 }
+.client-group-mosaic-2{ grid-template-rows: 1fr; }
+.client-group-mosaic-3 .client-group-mosaic-cell:first-child{ grid-row: span 2; }
+.client-group-mosaic-cell{ overflow: hidden; min-height: 0; }
+.client-group-mosaic-cell img{
+  display: block;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  filter: blur(3px) brightness(.7);
+  transform: scale(1.08); /* esconde as bordas claras do blur */
+  transition: filter .6s var(--ease), transform .6s var(--ease);
+}
+/* Mouse, teclado ou grupo aberto (toque no celular): o borrão diminui */
+.client-card-group:hover .client-group-mosaic-cell img,
+.client-card-group:focus-visible .client-group-mosaic-cell img,
+.client-card-group[aria-expanded="true"] .client-group-mosaic-cell img{
+  filter: blur(.5px) brightness(.85);
+  transform: scale(1.02);
+}
+/* O texto fica sempre visível por cima do mosaico */
+.client-group-face{
+  background: linear-gradient(180deg, transparent 35%, rgba(0,0,0,.88));
+}
+.client-card-group:hover .client-group-face{ opacity: 1; }
+.client-group-face .client-card-badge{ color: var(--fg-dim); }
+.client-group-face p{ color: var(--fg); }
+.client-group-more{
+  margin-left: .5rem;
+  font-size: .68rem;
+  letter-spacing: .12em;
+  color: var(--fg-dim);
+}
+
+/* Etiqueta "NOVO" (itens com recente: true) */
+.tag-novo{
+  position: absolute;
+  top: .7rem; right: .7rem;
+  z-index: 5;
+  padding: .25rem .55rem;
+  background: var(--fg);
+  color: var(--bg);
+  font-size: .62rem;
+  letter-spacing: .16em;
+  line-height: 1.4;
+  pointer-events: none;
+}
+.client-group-work-media .tag-novo{ top: .5rem; right: .5rem; }
 .client-group-panel{
   grid-column: 1 / -1;
   border: 1px solid var(--line);

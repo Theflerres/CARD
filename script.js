@@ -133,10 +133,14 @@
         <div class="portfolio-body">
           <h3>${item.titulo}</h3>
           <p>${item.descricao}</p>
-          <a class="portfolio-link mono" href="${item.link}" target="_blank" rel="noopener">VER PROJETO →</a>
+          <a class="portfolio-link mono" href="${item.link}" ${linkExterno(item.link) ? `target="_blank" rel="noopener"` : ""}>VER PROJETO →</a>
         </div>
       </article>
     `).join("");
+  }
+
+  function linkExterno(href) {
+    return /^https?:\/\//.test(href || "");
   }
 
   function renderProcess() {
@@ -176,23 +180,43 @@
     el.textContent = `© ${new Date().getFullYear()} ${SITE_CONFIG.footer.texto}`;
   }
 
+  // Trabalhos Recentes: itens do Histórico com "recente: true", na ordem do
+  // config (renders, clientes, Fila), limitados a historico.recentesMax.
   function renderRecentWorks() {
     const grid = document.getElementById("recent-works-grid");
-    if (!grid || !SITE_CONFIG.trabalhosRecentes) return;
-    // Com "link": abre em nova aba. Sem "link": abre a imagem ampliada.
-    grid.innerHTML = SITE_CONFIG.trabalhosRecentes.map((item) => {
-      const src = encodeURI(item.imagem);
-      const tag = item.link ? "a" : "div";
-      const attrs = item.link
-        ? `href="${item.link}" target="_blank" rel="noopener"`
-        : `role="button" tabindex="0" data-lightbox="${src}" data-caption="${escapeAttr(item.titulo)}"`;
+    const h = SITE_CONFIG.historico;
+    if (!grid || !h) return;
+    const max = typeof h.recentesMax === "number" ? h.recentesMax : 4;
+    const recentes = [...getRenderWorks(), ...(h.clientes || []), ...getFinalizedFilaItems()]
+      .filter((t) => t.recente)
+      .slice(0, max);
+
+    // Sem nenhum recente, a seção e o link do menu somem
+    const section = document.getElementById("trabalhos");
+    if (section) section.hidden = recentes.length === 0;
+    document.querySelectorAll('.nav-links a[href="#trabalhos"]').forEach((a) => { a.hidden = recentes.length === 0; });
+
+    grid.innerHTML = recentes.map((t) => {
+      // Render: amplia (ou aviso de sigilo). Vídeo/música: abre o link.
+      let tag = "div";
+      let attrs = "";
+      if (t.tipo === "render") {
+        attrs = `role="button" tabindex="0" ${abrirAttrs(t, t.cliente)}`;
+      } else if (t.link) {
+        tag = "a";
+        attrs = `href="${t.link}" target="_blank" rel="noopener"`;
+      }
+      const media = t.imagem
+        ? `<img src="${t.imagem}" alt="${t.sigilo ? "" : escapeAttr(t.titulo)}" loading="lazy" />${t.sigilo ? SIGILO_TAG : ""}`
+        : `<img class="recent-work-icon" src="${t.icon}" alt="" loading="lazy" />`;
       return `
-      <${tag} class="bracket-card recent-work-card" data-reveal ${attrs}>
-        <div class="recent-work-media">
-          <img src="${src}" alt="${escapeAttr(item.titulo)}" loading="lazy" />
+      <${tag} class="bracket-card recent-work-card${t.sigilo ? " client-sigilo" : ""}" data-reveal ${attrs}>
+        <div class="recent-work-media${t.imagem ? "" : " recent-work-media-icon"}">
+          ${media}
         </div>
         <div class="recent-work-body">
-          <h3>${item.titulo}</h3>
+          <h3>${t.titulo}</h3>
+          <p class="recent-work-client mono">${t.cliente}</p>
         </div>
       </${tag}>
     `}).join("");
@@ -200,28 +224,26 @@
 
   // Itens da Fila com status "finalizado" saem da Fila e viram cards
   // automáticos em Histórico de Clientes — não precisam ser duplicados em
-  // SITE_CONFIG.historico.clientes.
+  // SITE_CONFIG.historico.clientes. "recente", "imagem", "link" e "icon"
+  // são repassados se informados no item da Fila.
   function getFinalizedFilaItems() {
     const f = SITE_CONFIG.fila;
     if (!f) return [];
+    const doItem = (p, tipo, titulo, iconPadrao) => ({
+      cliente: p.titulo,
+      tipo,
+      titulo,
+      link: p.link || null,
+      icon: p.icon || iconPadrao,
+      imagem: p.imagem || null,
+      recente: !!p.recente,
+    });
     const music = (f.musicProjects || [])
       .filter((p) => p.status === "finalizado")
-      .map((p) => ({
-        cliente: p.titulo,
-        tipo: "musica",
-        titulo: "Produção Musical",
-        link: p.link || null,
-        icon: p.icon || "spotify-white-icon.webp",
-      }));
+      .map((p) => doItem(p, "musica", "Produção Musical", "spotify-white-icon.webp"));
     const video = (f.videoProjects || [])
       .filter((p) => p.status === "finalizado")
-      .map((p) => ({
-        cliente: p.titulo,
-        tipo: "video",
-        titulo: "Edição de Vídeo",
-        link: p.link || null,
-        icon: p.icon || "youtube-app-white-icon.webp",
-      }));
+      .map((p) => doItem(p, "video", "Edição de Vídeo", "youtube-app-white-icon.webp"));
     return [...music, ...video];
   }
 
@@ -288,19 +310,21 @@
     grid.innerHTML = itens.map((c, i) => {
       const label = h.tipoLabels[c.tipo] || c.tipo;
 
-      // Cliente com vários renders: card de grupo + painel que expande
+      // Cliente com vários renders: capa em mosaico (até 4 renders, levemente
+      // borrados) + painel que expande com cada trabalho
       if (c.trabalhos) {
         const n = c.trabalhos.length;
+        const capa = c.trabalhos.slice(0, 4);
         return `
           <div class="bracket-card client-card client-card-render client-card-group" data-categoria="render" data-grupo="${i}" role="button" tabindex="0" aria-expanded="false" data-reveal>
-            <div class="client-card-face">
+            <div class="client-group-mosaic client-group-mosaic-${capa.length}" aria-hidden="true">
+              ${capa.map((t) => `<span class="client-group-mosaic-cell"><img src="${t.imagem}" alt="" loading="lazy" /></span>`).join("")}
+            </div>
+            ${c.trabalhos.some((t) => t.recente) ? NOVO_TAG : ""}
+            <div class="client-card-face client-group-face">
               <span class="client-card-badge mono">${label}</span>
               <h3>${c.cliente}</h3>
-              <p>${n} trabalhos</p>
-            </div>
-            <div class="client-card-reveal">
-              <img src="${c.trabalhos[0].imagem}" alt="" loading="lazy" />
-              <span class="client-group-cta mono">VER ${n} TRABALHOS +</span>
+              <p>${n} trabalhos <span class="client-group-more mono">VER +</span></p>
             </div>
           </div>
           <div class="client-group-panel visible" data-categoria="render" data-grupo-panel="${i}" hidden>
@@ -311,6 +335,7 @@
                   <span class="client-group-work-media">
                     <img src="${t.imagem}" alt="${t.sigilo ? "" : escapeAttr(t.titulo)}" loading="lazy" />
                     ${t.sigilo ? SIGILO_TAG : ""}
+                    ${t.recente ? NOVO_TAG : ""}
                   </span>
                   <span class="mono">${t.titulo}</span>
                 </button>
@@ -337,6 +362,7 @@
            </div>`;
       return `
         <${tag} class="bracket-card client-card client-card-${c.tipo}${c.sigilo ? " client-sigilo" : ""}" data-categoria="${c.tipo}" ${attrs} data-reveal>
+          ${c.recente ? NOVO_TAG : ""}
           <div class="client-card-face">
             <span class="client-card-badge mono">${label}</span>
             <h3>${c.cliente}</h3>
@@ -396,9 +422,14 @@
 
     tabs.addEventListener("click", (e) => {
       const btn = e.target.closest(".historico-tab");
-      if (btn) selecionar(btn.dataset.filtro);
+      if (!btn) return;
+      selecionar(btn.dataset.filtro);
+      // Mantém a aba no endereço (historico.html#render) para links diretos
+      try { history.replaceState(null, "", `#${btn.dataset.filtro}`); } catch (_) {}
     });
-    selecionar(categorias[0]);
+    // historico.html#render | #video | #musica abre direto naquela aba
+    const doLink = location.hash.slice(1);
+    selecionar(categorias.includes(doLink) ? doLink : categorias[0]);
   }
 
   // Renders da pasta assets/Blender: "Título_Cliente.ext"
@@ -412,28 +443,37 @@
     return { titulo: base.slice(0, i).trim(), cliente: base.slice(i + 1).trim() };
   }
 
-  function getRenderItems() {
+  // Lista plana de renders, na ordem do config.
+  // Cada item é o nome do arquivo ou { arquivo, titulo, sigilo, recente }.
+  function getRenderWorks() {
     const h = SITE_CONFIG.historico;
-    const porCliente = new Map();
-    // Cada item é o nome do arquivo ou { arquivo, titulo, sigilo }
-    (h.renders || []).forEach((item) => {
+    return (h.renders || []).map((item) => {
+      const obj = typeof item === "object" ? item : {};
       const arquivo = typeof item === "string" ? item : item.arquivo;
       const { titulo: tituloArquivo, cliente } = parseRenderFilename(arquivo);
-      const titulo = (typeof item === "object" && item.titulo) || tituloArquivo;
-      const sigilo = typeof item === "object" && !!item.sigilo;
+      const sigilo = !!obj.sigilo;
       // Sob sigilo, o caminho do original nunca é montado: só a versão borrada
       const imagem = sigilo
         ? encodeURI(`${h.pastaSigilo}/${arquivo.replace(/\.[^.]+$/, "")}.jpg`)
         : encodeURI(`${h.pastaRenders}/${arquivo}`);
-      if (!porCliente.has(cliente)) porCliente.set(cliente, []);
-      porCliente.get(cliente).push({ titulo, imagem, sigilo });
+      return { tipo: "render", cliente, titulo: obj.titulo || tituloArquivo, imagem, sigilo, recente: !!obj.recente };
+    });
+  }
+
+  // Agrupa os renders por cliente: mais de um trabalho vira grupo
+  function getRenderItems() {
+    const porCliente = new Map();
+    getRenderWorks().forEach((t) => {
+      if (!porCliente.has(t.cliente)) porCliente.set(t.cliente, []);
+      porCliente.get(t.cliente).push(t);
     });
     return [...porCliente].map(([cliente, trabalhos]) => trabalhos.length > 1
       ? { tipo: "render", cliente, trabalhos }
-      : { tipo: "render", cliente, ...trabalhos[0] });
+      : trabalhos[0]);
   }
 
   const SIGILO_TAG = `<span class="client-sigilo-tag mono">EM SIGILO</span>`;
+  const NOVO_TAG = `<span class="tag-novo mono">NOVO</span>`;
 
   // Clique num render: amplia a imagem ou, sob sigilo, mostra o aviso
   function abrirAttrs(t, cliente) {

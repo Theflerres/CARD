@@ -123,11 +123,11 @@ const SITE_CONFIG = {
   /* ---------------------------------------------------------------------
      3. PORTFÓLIO
      Adicione, remova ou edite quantos itens quiser.
-     "imagem" aceita um caminho local (ex: "assets/projeto1.jpg") ou uma URL.
+     "icon" é o ícone do card; "imagem" (opcional) só é usada sem "icon".
+     Links externos abrem em nova aba; links internos, na mesma aba.
   --------------------------------------------------------------------- */
   portfolio: [
     {
-      imagem: "https://placehold.co/800x600/1DB954/FFFFFF?text=Spotify+Artist",
       titulo: "Portfólio de Música",
       descricao:
         "Confira todas as minhas produções musicais e trilhas sonoras no Spotify.",
@@ -135,28 +135,19 @@ const SITE_CONFIG = {
       icon: "spotify-white-icon.webp",
     },
     {
-      imagem: "https://placehold.co/800x600/FF0000/FFFFFF?text=YouTube+Channel",
       titulo: "Portfólio de Edição de Vídeo",
       descricao:
         "Assista aos meus trabalhos de edição e cinemáticas no meu canal do YouTube.",
       link: "https://www.youtube.com/@Theflerres",
       icon: "youtube-app-white-icon.webp",
     },
-  ],
-
-  /* ---------------------------------------------------------------------
-     3B. TRABALHOS RECENTES
-     Galeria de projetos recentes com imagens do projeto.
-  --------------------------------------------------------------------- */
-  // "link" é opcional: sem link, clicar no card abre a imagem ampliada.
-  trabalhosRecentes: [
     {
-      imagem: "assets/Blender/Zilla e sirus_Equinox.png",
-      titulo: "Zilla e sirus",
-    },
-    {
-      imagem: "assets/Blender/Sirius praia_Equinox.jpg",
-      titulo: "Sirius praia",
+      titulo: "Portfólio de Render 3D",
+      descricao:
+        "Veja os renders 3D no Blender que já entreguei, direto no Histórico de Clientes.",
+      // Link interno: abre na mesma aba, já com a aba Render selecionada
+      link: "historico.html#render",
+      icon: "render-white-icon.svg",
     },
   ],
 
@@ -267,6 +258,12 @@ const SITE_CONFIG = {
     // "sigilo: true" e (opcional) a versão borrada em assets/sigilo/.
     pastaRenders: "assets/Blender",
     pastaSigilo: "assets/sigilo",
+    // TRABALHOS RECENTES — qualquer trabalho do Histórico (render, item de
+    // "clientes" ou item finalizado da Fila) com "recente: true" aparece na
+    // seção Trabalhos Recentes da página inicial e ganha a etiqueta "NOVO".
+    // A página inicial mostra no máximo "recentesMax", na ordem deste
+    // arquivo (renders, depois clientes, depois a Fila).
+    recentesMax: 4,
     mensagemSigilo: "O cliente pediu sigilo até o lançamento oficial da arte em seu projeto.",
     renders: [
       { arquivo: "Banner Aurora Live_Aurora Mortis.png", sigilo: true },
@@ -278,10 +275,10 @@ const SITE_CONFIG = {
       { arquivo: "KANEKA Espelho_Kaneka.png", titulo: "Kaneka – Espelho" },
       { arquivo: "Logo album anti espiral_Espiralium.png", titulo: "Logo Álbum Anti-Espiral" },
       { arquivo: "Perfil p3_FCN.png", titulo: "Perfil P3" },
-      { arquivo: "Sirius praia_Equinox.jpg", titulo: "Sirius na Praia" },
+      { arquivo: "Sirius praia_Equinox.jpg", titulo: "Sirius na Praia", recente: true },
       { arquivo: "Sirus_Equinox.png", titulo: "Sirius" },
       { arquivo: "Tom foto de Perfil_Espiralium.png", titulo: "Tom – Foto de Perfil" },
-      { arquivo: "Zilla e sirus_Equinox.png", titulo: "Zilla e Sirius" },
+      { arquivo: "Zilla e sirus_Equinox.png", titulo: "Zilla e Sirius", recente: true },
       "Zilla_Equinox.png",
     ],
     // Os cards de trabalhos finalizados na Fila aparecem aqui automaticamente.
