@@ -207,7 +207,7 @@
         attrs = `href="${t.link}" target="_blank" rel="noopener"`;
       }
       const media = t.imagem
-        ? `<img src="${t.imagem}" alt="${t.sigilo ? "" : escapeAttr(t.titulo)}" loading="lazy" />${t.sigilo ? SIGILO_TAG : ""}`
+        ? `${midiaHTML(t, t.sigilo ? "" : escapeAttr(t.titulo))}${t.sigilo ? SIGILO_TAG : ""}`
         : `<img class="recent-work-icon" src="${t.icon}" alt="" loading="lazy" />`;
       return `
       <${tag} class="bracket-card recent-work-card${t.sigilo ? " client-sigilo" : ""}" data-reveal ${attrs}>
@@ -318,7 +318,7 @@
         return `
           <div class="bracket-card client-card client-card-render client-card-group" data-categoria="render" data-grupo="${i}" role="button" tabindex="0" aria-expanded="false" data-reveal>
             <div class="client-group-mosaic client-group-mosaic-${capa.length}" aria-hidden="true">
-              ${capa.map((t) => `<span class="client-group-mosaic-cell"><img src="${t.imagem}" alt="" loading="lazy" /></span>`).join("")}
+              ${capa.map((t) => `<span class="client-group-mosaic-cell">${midiaHTML(t, "", false)}</span>`).join("")}
             </div>
             ${c.trabalhos.some((t) => t.recente) ? NOVO_TAG : ""}
             <div class="client-card-face client-group-face">
@@ -333,7 +333,7 @@
               ${c.trabalhos.map((t) => `
                 <button type="button" class="client-group-work${t.sigilo ? " client-sigilo" : ""}" ${abrirAttrs(t, c.cliente)}>
                   <span class="client-group-work-media">
-                    <img src="${t.imagem}" alt="${t.sigilo ? "" : escapeAttr(t.titulo)}" loading="lazy" />
+                    ${midiaHTML(t, t.sigilo ? "" : escapeAttr(t.titulo))}
                     ${t.sigilo ? SIGILO_TAG : ""}
                     ${t.recente ? NOVO_TAG : ""}
                   </span>
@@ -354,7 +354,7 @@
         attrs = `href="${c.link}" target="_blank" rel="noopener"`;
       }
       const reveal = c.tipo === "render"
-        ? `<div class="client-card-reveal"><img src="${c.imagem}" alt="${c.sigilo ? "" : escapeAttr(c.titulo)}" loading="lazy" />${c.sigilo ? SIGILO_TAG : ""}</div>`
+        ? `<div class="client-card-reveal">${midiaHTML(c, c.sigilo ? "" : escapeAttr(c.titulo))}${c.sigilo ? SIGILO_TAG : ""}</div>`
         : `<div class="client-card-reveal">
              ${c.imagem ? `<img class="client-card-thumb" src="${c.imagem}" alt="" loading="lazy" />` : ""}
              <span class="client-card-icon"><img src="${c.icon}" alt="" /></span>
@@ -443,11 +443,11 @@
     return { titulo: base.slice(0, i).trim(), cliente: base.slice(i + 1).trim() };
   }
 
-  // Lista plana de renders, na ordem do config.
+  // Lista plana de renders e animações, na ordem do config.
   // Cada item é o nome do arquivo ou { arquivo, titulo, sigilo, recente }.
   function getRenderWorks() {
     const h = SITE_CONFIG.historico;
-    return (h.renders || []).map((item) => {
+    const renders = (h.renders || []).map((item) => {
       const obj = typeof item === "object" ? item : {};
       const arquivo = typeof item === "string" ? item : item.arquivo;
       const { titulo: tituloArquivo, cliente } = parseRenderFilename(arquivo);
@@ -458,6 +458,24 @@
         : encodeURI(`${h.pastaRenders}/${arquivo}`);
       return { tipo: "render", cliente, titulo: obj.titulo || tituloArquivo, imagem, sigilo, recente: !!obj.recente };
     });
+    // Animações: mesmo formato, mas "imagem" aponta para o vídeo (.mp4)
+    const animacoes = (h.animacoes || []).map((item) => {
+      const obj = typeof item === "object" ? item : {};
+      const arquivo = typeof item === "string" ? item : item.arquivo;
+      const { titulo: tituloArquivo, cliente } = parseRenderFilename(arquivo);
+      return {
+        tipo: "render", animacao: true, cliente, titulo: obj.titulo || tituloArquivo,
+        imagem: encodeURI(`${h.pastaAnimacoes}/${arquivo}`), sigilo: false, recente: !!obj.recente,
+      };
+    });
+    return [...renders, ...animacoes];
+  }
+
+  // Miniatura de um trabalho: <img> para render, <video> parado no 1º segundo
+  // para animação (com etiqueta "ANIMAÇÃO", exceto na capa em mosaico).
+  function midiaHTML(t, alt = "", comEtiqueta = true) {
+    if (!t.animacao) return `<img src="${t.imagem}" alt="${alt}" loading="lazy" />`;
+    return `<video src="${t.imagem}#t=1" muted playsinline preload="metadata" aria-hidden="true"></video>${comEtiqueta ? ANIMACAO_TAG : ""}`;
   }
 
   // Agrupa os renders por cliente: mais de um trabalho vira grupo
@@ -474,13 +492,14 @@
 
   const SIGILO_TAG = `<span class="client-sigilo-tag mono">EM SIGILO</span>`;
   const NOVO_TAG = `<span class="tag-novo mono">NOVO</span>`;
+  const ANIMACAO_TAG = `<span class="tag-animacao mono">▶ ANIMAÇÃO</span>`;
 
-  // Clique num render: amplia a imagem ou, sob sigilo, mostra o aviso
+  // Clique num render: amplia a imagem (ou toca a animação) ou, sob sigilo,
+  // mostra o aviso
   function abrirAttrs(t, cliente) {
     const caption = escapeAttr(`${t.titulo} — ${cliente}`);
-    return t.sigilo
-      ? `data-sigilo data-caption="${caption}"`
-      : `data-lightbox="${t.imagem}" data-caption="${caption}"`;
+    if (t.sigilo) return `data-sigilo data-caption="${caption}"`;
+    return `data-lightbox="${t.imagem}"${t.animacao ? " data-video" : ""} data-caption="${caption}"`;
   }
 
   function escapeAttr(str) {
@@ -502,6 +521,7 @@
       <button type="button" class="lightbox-close mono" aria-label="Fechar">FECHAR ✕</button>
       <figure>
         <img alt="" />
+        <video controls playsinline hidden></video>
         <figcaption class="mono"></figcaption>
       </figure>
       <div class="lightbox-sigilo" hidden>
@@ -513,10 +533,17 @@
     document.body.appendChild(box);
     const figure = box.querySelector("figure");
     const img = box.querySelector("img");
+    const video = box.querySelector("video");
     const caption = box.querySelector("figcaption");
     const sigilo = box.querySelector(".lightbox-sigilo");
 
-    const fechar = () => { box.hidden = true; img.removeAttribute("src"); };
+    const fechar = () => {
+      box.hidden = true;
+      img.removeAttribute("src");
+      video.pause();
+      video.removeAttribute("src");
+      video.load();
+    };
 
     document.addEventListener("click", (e) => {
       const alvo = e.target.closest("[data-lightbox], [data-sigilo]");
@@ -528,13 +555,26 @@
         sigilo.querySelector(".lightbox-sigilo-msg").textContent = SITE_CONFIG.historico.mensagemSigilo;
         sigilo.querySelector(".lightbox-sigilo-caption").textContent = alvo.dataset.caption || "";
       } else {
-        img.src = alvo.dataset.lightbox;
-        img.alt = alvo.dataset.caption || "";
+        const ehVideo = alvo.hasAttribute("data-video");
+        img.hidden = ehVideo;
+        video.hidden = !ehVideo;
+        if (ehVideo) {
+          video.src = alvo.dataset.lightbox;
+          video.setAttribute("aria-label", alvo.dataset.caption || "");
+          video.play().catch(() => {}); // se o navegador bloquear, fica o botão de play
+        } else {
+          img.src = alvo.dataset.lightbox;
+          img.alt = alvo.dataset.caption || "";
+        }
         caption.textContent = alvo.dataset.caption || "";
       }
       box.hidden = false;
     });
-    box.addEventListener("click", fechar);
+    // Clicar fora fecha; clicar nos controles do vídeo não
+    box.addEventListener("click", (e) => {
+      if (e.target.closest("figure video")) return;
+      fechar();
+    });
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && !box.hidden) fechar();
       // Cards com role="button" respondem a Enter/Espaço
@@ -576,6 +616,7 @@
         pointColor: "255,255,255",
         reactToMouse: true,
         formIn: false,       // se true, partículas nascem no centro e se espalham (efeito intro)
+        sempreAnimar: false, // se true, anima mesmo com "reduzir movimento" ligado no sistema
       }, opts);
 
       this.mouse = { x: -9999, y: -9999 };
@@ -589,7 +630,7 @@
         window.addEventListener("mousemove", this._onMove);
       }
       this._resize();
-      if (!REDUCED_MOTION) {
+      if (!REDUCED_MOTION || this.opts.sempreAnimar) {
         this.raf = requestAnimationFrame(this._tick);
       } else {
         this._drawStatic();
@@ -718,12 +759,16 @@
   ------------------------------------------------------------------ */
   function initScanBeam() {
     const beam = document.getElementById("scan-beam");
-    if (!beam || REDUCED_MOTION) return;
+    // O feixe faz parte do fundo: anima sempre, como a rede de partículas
+    if (!beam) return;
 
     function sweep() {
       beam.style.transition = "none";
       beam.style.transform = "translateX(0)";
       beam.style.opacity = "0";
+      // Força o navegador a aplicar a volta ao início antes da nova varredura;
+      // sem isso, da 2ª varredura em diante o feixe não se movia
+      void beam.offsetWidth;
 
       requestAnimationFrame(() => {
         beam.style.transition = "transform 2.6s cubic-bezier(.4,0,.2,1), opacity 2.6s ease";
@@ -863,6 +908,9 @@
       maxLinkDist: 130,
       speed: 0.12,
       reactToMouse: true,
+      // O fundo anima sempre, mesmo com os efeitos de animação desligados
+      // no sistema (as outras animações do site continuam respeitando)
+      sempreAnimar: true,
     });
   });
 })();

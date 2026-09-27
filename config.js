@@ -262,11 +262,13 @@ const SITE_CONFIG = {
     // "clientes" ou item finalizado da Fila) com "recente: true" aparece na
     // seção Trabalhos Recentes da página inicial e ganha a etiqueta "NOVO".
     // A página inicial mostra no máximo "recentesMax", na ordem deste
-    // arquivo (renders, depois clientes, depois a Fila).
+    // arquivo (renders, animações, clientes, Fila). Para um recente aparecer
+    // primeiro, deixe a linha dele no topo da lista.
     recentesMax: 4,
     mensagemSigilo: "O cliente pediu sigilo até o lançamento oficial da arte em seu projeto.",
     renders: [
-      { arquivo: "Banner Aurora Live_Aurora Mortis.png", sigilo: true },
+      { arquivo: "Banner Aurora Live_Aurora Mortis.png", recente: true },
+      { arquivo: "Star e Cachorros_Aurora Mortis.png", recente: true },
       "Bott e P3_FCN.png",
       { arquivo: "Bott rosto 4_FCN.png", titulo: "Bott – Rosto" },
       { arquivo: "Diretores2_Equinox.png", titulo: "Diretores" },
@@ -280,6 +282,15 @@ const SITE_CONFIG = {
       { arquivo: "Tom foto de Perfil_Espiralium.png", titulo: "Tom – Foto de Perfil" },
       { arquivo: "Zilla e sirus_Equinox.png", titulo: "Zilla e Sirius", recente: true },
       "Zilla_Equinox.png",
+    ],
+    // ANIMAÇÕES 3D — vídeos (.mp4) da pasta abaixo. Mesma regra de nome
+    // ("Título_Cliente.mp4") e mesmas opções dos renders (titulo, recente).
+    // Entram na aba Render, junto dos renders do mesmo cliente, com a
+    // etiqueta "ANIMAÇÃO"; ao clicar, o vídeo toca ampliado.
+    // (O sigilo só vale para renders em imagem.)
+    pastaAnimacoes: "assets/Animacao",
+    animacoes: [
+      "Aurora Live_Aurora Mortis.mp4",
     ],
     // Os cards de trabalhos finalizados na Fila aparecem aqui automaticamente.
     // Adicione objetos aqui para trabalhos que não passaram pela Fila.
