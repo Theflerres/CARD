@@ -200,7 +200,7 @@
       // Render: amplia (ou aviso de sigilo). Vídeo/música: abre o link.
       let tag = "div";
       let attrs = "";
-      if (t.tipo === "render") {
+      if (t.tipo === "render" || t.sigilo) {
         attrs = `role="button" tabindex="0" ${abrirAttrs(t, t.cliente)}`;
       } else if (t.link) {
         tag = "a";
@@ -233,9 +233,11 @@
       cliente: p.titulo,
       tipo,
       titulo,
-      link: p.link || null,
+      // Sob sigilo o link nunca é exposto: o card só mostra o aviso
+      link: p.sigilo ? null : p.link || null,
       icon: p.icon || iconPadrao,
       imagem: p.imagem || null,
+      sigilo: !!p.sigilo,
       recente: !!p.recente,
     });
     const music = (f.musicProjects || [])
@@ -347,7 +349,7 @@
 
       let tag = "div";
       let attrs = "";
-      if (c.tipo === "render") {
+      if (c.tipo === "render" || c.sigilo) {
         attrs = `role="button" tabindex="0" ${abrirAttrs(c, c.cliente)}`;
       } else if (c.link) {
         tag = "a";
@@ -358,7 +360,7 @@
         : `<div class="client-card-reveal">
              ${c.imagem ? `<img class="client-card-thumb" src="${c.imagem}" alt="" loading="lazy" />` : ""}
              <span class="client-card-icon"><img src="${c.icon}" alt="" /></span>
-             <span class="client-card-cta mono">${c.link ? `VER ${label.toUpperCase()} →` : label.toUpperCase()}</span>
+             <span class="client-card-cta mono">${c.sigilo ? "EM SIGILO" : c.link ? `VER ${label.toUpperCase()} →` : label.toUpperCase()}</span>
            </div>`;
       return `
         <${tag} class="bracket-card client-card client-card-${c.tipo}${c.sigilo ? " client-sigilo" : ""}" data-categoria="${c.tipo}" ${attrs} data-reveal>
