@@ -37,7 +37,7 @@ const SITE_CONFIG = {
   comissoes: {
     abertas: true,
     totalSlots: 7,
-    slotsOcupados: 0,
+    slotsOcupados: 2,
     mensagemAbertas: "COMISSÕES ABERTAS",
     mensagemFechadas: "COMISSÕES FECHADAS NO MOMENTO",
     mensagemLotadas: "COMISSÕES LOTADAS",
