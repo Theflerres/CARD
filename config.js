@@ -37,7 +37,7 @@ const SITE_CONFIG = {
   comissoes: {
     abertas: true,
     totalSlots: 7,
-    slotsOcupados: 2,
+    slotsOcupados: 4,
     mensagemAbertas: "COMISSÕES ABERTAS",
     mensagemFechadas: "COMISSÕES FECHADAS NO MOMENTO",
     mensagemLotadas: "COMISSÕES LOTADAS",
@@ -350,6 +350,8 @@ const SITE_CONFIG = {
       { titulo: "Album Espiralium Era 2 Deluxe", status: "finalizado", link: "https://open.spotify.com/intl-pt/album/7z49fWQSpJdRYJQ5cHGMJM?si=OBUMD49JTY-TjLp1KsE7gg" },
       { titulo: "Album Ordem Paranormal Genesis", status: "finalizado", sigilo: true },
       { titulo: "Album BTWO - Tempestade Vermelha", status: "em espera" },
+      { titulo: "Retrofossil", status: "em espera" },
+      { titulo: "lillie_elysium", status: "em espera" },
     ],
     videoProjects: [
       { titulo: "FCNSMP", status: "finalizado" },
