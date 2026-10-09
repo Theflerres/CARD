@@ -259,25 +259,21 @@
     document.getElementById("fila-subtitle").textContent = f.subtitulo;
 
     // Itens finalizados não aparecem mais na Fila — foram para o Histórico.
-    musicList.innerHTML = f.musicProjects.filter((p) => p.status !== "finalizado").map((p) => {
-      // Converte "em producao" para "em_producao" para bater com o CSS
-      const statusClass = p.status.replace(/\s+/g, '_').toLowerCase();
-      return `
+    const renderLista = (el, projetos) => {
+      if (!el) return;
+      el.innerHTML = (projetos || []).filter((p) => p.status !== "finalizado").map((p) => {
+        // Converte "em producao" para "em_producao" para bater com o CSS
+        const statusClass = p.status.replace(/\s+/g, '_').toLowerCase();
+        return `
       <div class="fila-item fila-status-${statusClass}" data-reveal>
         <div class="fila-item-name">${p.titulo}</div>
         <div class="fila-item-status mono">${p.status.replace(/_/g, ' ').toUpperCase()}</div>
       </div>
     `}).join("");
-
-    const videoList = document.getElementById("fila-video");
-    videoList.innerHTML = f.videoProjects.filter((p) => p.status !== "finalizado").map((p) => {
-      const statusClass = p.status.replace(/\s+/g, '_').toLowerCase();
-      return `
-      <div class="fila-item fila-status-${statusClass}" data-reveal>
-        <div class="fila-item-name">${p.titulo}</div>
-        <div class="fila-item-status mono">${p.status.replace(/_/g, ' ').toUpperCase()}</div>
-      </div>
-    `}).join("");
+    };
+    renderLista(musicList, f.musicProjects);
+    renderLista(document.getElementById("fila-video"), f.videoProjects);
+    renderLista(document.getElementById("fila-render"), f.renderProjects);
   }
 
   function renderTermos() {

@@ -37,7 +37,7 @@ const SITE_CONFIG = {
   comissoes: {
     abertas: true,
     totalSlots: 7,
-    slotsOcupados: 4,
+    slotsOcupados: 5,
     mensagemAbertas: "COMISSÕES ABERTAS",
     mensagemFechadas: "COMISSÕES FECHADAS NO MOMENTO",
     mensagemLotadas: "COMISSÕES LOTADAS",
@@ -352,12 +352,18 @@ const SITE_CONFIG = {
       { titulo: "Album BTWO - Tempestade Vermelha", status: "em espera" },
       { titulo: "Retrofossil", status: "em espera" },
       { titulo: "lillie_elysium", status: "em espera" },
+      { titulo: "Vick", status: "em espera" },
     ],
     videoProjects: [
       { titulo: "FCNSMP", status: "finalizado" },
       { titulo: "EquinoxSMP", status: "finalizado" },
       { titulo: "Aurora Mortis", status: "em producao" },
       { titulo: "Espiralium Era 2", status: "finalizado", link: "https://www.youtube.com/@EspiraliumEra2" },
+    ],
+    // Renders finalizados não viram card automático no Histórico — os renders
+    // entregues entram pela pasta de renders (historico.renders).
+    renderProjects: [
+      { titulo: "Aurora Mortis", status: "em producao" },
     ],
     statusLabels: {
       em_producao: "Em Produção",
